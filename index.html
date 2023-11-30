@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hand Pose Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/hand-pose-detection"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
+</head>
+<style>
+    .flip-horizontal {
+        transform: scaleX(-1);
+    }
+
+    body {
+        text-align: center; /* Center-align elements */
+        font-family: Arial, sans-serif; /* Optional: Change font */
+    }
+
+      #video {
+          margin-top: 20px; /* Space from top */
+      }
+
+      .buttons {
+          margin-top: 20px;
+      }
+
+      .buttons button {
+          margin: 0 10px; /* Space between buttons */
+      }
+
+      .train-section {
+          margin-top: 20px;
+          border: 1px solid #ddd; /* Optional: Add a border */
+          padding: 10px;
+          display: inline-block;
+          text-align: left;
+      }
+
+      .train-section h2 {
+          margin-top: 0;
+      }
+
+      #predictionDisplay {
+          margin-top: 20px;
+          font-size: 24px; /* Larger font size */
+          font-weight: bold;
+          color: #333; /* Optional: Change text color */
+      }
+</style>
+<body>
+    <video id="video" width="640" height="480" playsinline></video>
+
+    <div class = "buttons">
+        <button id="startButton">Start Video</button>
+        <button id="predictButton">Predict</button>
+    </div>
+
+    <div class = "train-section">
+        <input type="text" id="labelInput" placeholder="Enter label">
+        <button id="sendDataButton">Send Data</button>
+    </div>
+
+    <p id="predictionDisplay" style="font-size: 24px; font-weight: bold;"></p>
+
+    <script>
+        const URL_SERVER = "http://127.0.0.1:5000/receive_data";
+        const URL_SERVER_PREDICT = "http://127.0.0.1:5000/predict"
+        async function main() {
+            const video = document.getElementById('video');
+            const startButton = document.getElementById('startButton');
+            const sendDataButton = document.getElementById('sendDataButton');
+            const labelInput = document.getElementById('labelInput');
+            const predictButton = document.getElementById('predictButton');
+            let lastPredictions = null;
+
+            document.getElementById('video').classList.add('flip-horizontal');
+
+            // Load the MediaPipe handpose model.
+            const model = await handPoseDetection.createDetector(handPoseDetection.SupportedModels.MediaPipeHands, {
+                runtime: 'mediapipe',
+                solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/hands'
+            });
+
+            // Setup video
+            async function setupCamera() {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                return new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        resolve(video);
+                    };
+                });
+            }
+
+
+            predictButton.addEventListener('click', function() {
+                // Prepare your data for prediction (adjust this to match your model's input format)
+                const data = {label: "aa", handData: lastPredictions}; // Replace with the actual data you want to predict };
+                fetch(URL_SERVER_PREDICT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        //'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: JSON.stringify(data)
+                    //mode: 'cors'
+                    //mode: 'no-cors'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Success:', data);
+                    updatePredictionDisplay(data.prediction);
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+            });
+
+            function autoPredict() {
+                predictButton.click();
+            };
+
+            function updatePredictionDisplay(prediction) {
+                const displayElement = document.getElementById('predictionDisplay');
+                displayElement.textContent = 'Prediction: ' + prediction;  // Adjust based on the actual structure of 'prediction'
+            }
+
+            async function detect() {
+                const predictions = await model.estimateHands(video);
+                if (predictions.length > 0) {
+                    console.log("predictions", predictions);
+                    lastPredictions = predictions;
+                }
+                requestAnimationFrame(detect);
+            }
+
+            function sendDataToServer(data, url = URL_SERVER) {
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                    mode: 'cors'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Success:', data);
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+            }
+
+            startButton.addEventListener('click', async () => {
+                startButton.disabled = true;
+                await setupCamera();
+                video.play();
+                detect();
+            });
+
+            sendDataButton.addEventListener('click', () => {
+                if (lastPredictions) {
+                    const label = labelInput.value.trim();
+                    const dataToBeSent = { label, handData: lastPredictions };
+                    sendDataToServer(dataToBeSent);
+                } else {
+                    console.log('No data to send');
+                }
+            });
+        setInterval(autoPredict, 1000);
+        }
+
+        main();
+
+
+    </script>
+</body>
+</html>
+
