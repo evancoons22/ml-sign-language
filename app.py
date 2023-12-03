@@ -143,6 +143,6 @@ def predict():
     return jsonify(response)
 
 if __name__ == '__main__':
-    create_table()
+    #create_table()
     app.run(debug=True)
 
