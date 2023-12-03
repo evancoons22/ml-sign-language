@@ -1,5 +1,5 @@
 # ml-sign-language
-UI to detect sign language for math 156 final project UCLA. 
+Live inference of sign language for math 156 final project UCLA. 
 
 ### Example
 
