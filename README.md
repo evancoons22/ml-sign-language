@@ -1,6 +1,10 @@
 # ml-sign-language
 UI to detect sign language for math 156 final project UCLA. 
 
+### Example
+
+[gif](https://github.com/evancoons22/ml-sign-language/blob/main/output.gif)
+
 ### Instructions
 1. Make sure these dependencies are installed:
    - `$pip install flask`
