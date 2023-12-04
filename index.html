@@ -17,11 +17,23 @@
         font-family: Arial, sans-serif; /* Optional: Change font */
     }
 
-      #video #handCanvas {
-          display: inline-block;
-          vertical-align: top;
-      }
+    .video-canvas-container {
+        position: relative;
+        margin: auto; /* Center the container */
+        display: flex;
+        justify-content: center; /* Center the contents horizontally */
+        align-items: center; /* Center the contents vertically */
+    }
 
+    #video, #canvas, #handCanvas {
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    #handCanvas {
+        margin-left: 20px; /* Add some space between the video and the canvas */
+        border: 1px solid black; /* Optional: for better visibility */
+    }
       .buttons {
           margin-top: 20px;
       }
@@ -50,8 +62,10 @@
       }
 </style>
 <body>
+    <div class="video-canvas-container">
     <video id="video" width="640" height="480" playsinline></video>
     <canvas id="handCanvas" width="320" height="240" style="border:1px solid black;"></canvas>
+    </div>
 
     <div class = "buttons">
         <button id="startButton">Start Video</button>
