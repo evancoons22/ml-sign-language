@@ -116,7 +116,6 @@ def predict():
     # values = values[1:]
 
     keypoints = np.array(values).reshape(-1, 2) # Reshape to (21, 2)
-    print("keypoints: ", keypoints)
     # Normalize keypoints (optional, based on your data range)
     keypoints = (keypoints - keypoints.mean(axis=0)) / keypoints.std(axis=0)
     x = torch.tensor(keypoints, dtype=torch.float)

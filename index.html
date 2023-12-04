@@ -17,8 +17,9 @@
         font-family: Arial, sans-serif; /* Optional: Change font */
     }
 
-      #video {
-          margin-top: 20px; /* Space from top */
+      #video #handCanvas {
+          display: inline-block;
+          vertical-align: top;
       }
 
       .buttons {
@@ -50,6 +51,7 @@
 </style>
 <body>
     <video id="video" width="640" height="480" playsinline></video>
+    <canvas id="handCanvas" width="320" height="240" style="border:1px solid black;"></canvas>
 
     <div class = "buttons">
         <button id="startButton">Start Video</button>
@@ -61,7 +63,7 @@
         <button id="sendDataButton">Send Data</button>
     </div>
 
-    <p id="predictionDisplay" style="font-size: 24px; font-weight: bold;"></p>
+    <p id="predictionDisplay" style="font-size: 32px; font-weight: bold;"></p>
 
     <script>
         const URL_SERVER = "http://127.0.0.1:5000/receive_data";
@@ -75,6 +77,7 @@
             let lastPredictions = null;
 
             document.getElementById('video').classList.add('flip-horizontal');
+            document.getElementById('handCanvas').classList.add('flip-horizontal');
 
             // Load the MediaPipe handpose model.
             const model = await handPoseDetection.createDetector(handPoseDetection.SupportedModels.MediaPipeHands, {
@@ -129,8 +132,10 @@
             async function detect() {
                 const predictions = await model.estimateHands(video);
                 if (predictions.length > 0) {
-                    console.log("predictions", predictions);
+                    //console.log("predictions", predictions);
                     lastPredictions = predictions;
+                    //console.log(lastPredictions[0].keypoints);
+                    drawHand(lastPredictions[0].keypoints, 'handCanvas');
                 }
                 requestAnimationFrame(detect);
             }
@@ -153,6 +158,63 @@
                 });
             }
 
+            const edges = [
+                { start: 0, end: 1 }, 
+                { start: 1, end: 2 }, 
+                { start: 2, end: 3 },
+                { start: 3, end: 4 }, 
+
+                { start: 0, end: 5 }, 
+                { start: 5, end: 6 },
+                { start: 6, end: 7 }, 
+                { start: 7, end: 8 }, 
+
+                { start: 0, end: 9 }, 
+                { start: 9, end: 10 },
+                { start: 10, end: 11 }, 
+                { start: 11, end: 12 }, 
+
+                { start: 0, end: 13 }, 
+                { start: 13, end: 14 },
+                { start: 14, end: 15 }, 
+                { start: 15, end: 16 }, 
+
+                { start: 0, end: 17 }, 
+                { start: 17, end: 18 },
+                { start: 18, end: 19 }, 
+                { start: 19, end: 20 }, 
+            ];
+            const scalefactor = 0.5;
+
+            function drawHand(points, canvasId) {
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw each point
+                points.forEach(point => {
+                    const scaledX = point.x * scalefactor;
+                    const scaledY = point.y * scalefactor;
+
+                    ctx.beginPath();
+                    ctx.arc(scaledX, scaledY, 5, 0, 2 * Math.PI); // Adjust the radius as needed
+                    ctx.fillStyle = 'red';
+                    ctx.fill();
+                });
+
+                // Connect points with lines (update this part based on your model's structure)
+
+                edges.forEach(edge => {
+                    ctx.beginPath();
+                    ctx.moveTo(points[edge.start].x * scalefactor, points[edge.start].y * scalefactor);
+                    ctx.lineTo(points[edge.end].x * scalefactor, points[edge.end].y * scalefactor);
+                    ctx.strokeStyle = 'blue';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                });
+            }
+
+
             startButton.addEventListener('click', async () => {
                 startButton.disabled = true;
                 await setupCamera();
@@ -169,7 +231,7 @@
                     console.log('No data to send');
                 }
             });
-        setInterval(autoPredict, 1000);
+        setInterval(autoPredict, 700);
         }
 
         main();
