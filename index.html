@@ -8,9 +8,22 @@
         <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
     </head>
     <style>
-.flip-horizontal {
-    transform: scaleX(-1);
-}
+
+    .flip-horizontal {
+        transform: scaleX(-1);
+    }
+
+    .title-containter { 
+        margin: auto; /* Center the text container */
+        width: 80%; /* Set the width to 80% of the window */
+        padding: 10px; /* Add some padding */
+    }
+
+    .title {
+        font-size: 32px; /* Larger font size */
+        font-weight: bold; /* Make sure it's bold */
+        color: #333; /* Optional: text color */
+    }
 
     body {
         text-align: center; /* Center-align elements */
@@ -67,6 +80,9 @@
     }
     </style>
     <body>
+        <div class="title-containter">
+            <h1 class="title">Hand Pose Translation</h1>
+        </div>
         <div class="video-canvas-container">
             <img id = "photo" src="signs.png" width="320" height="480" style="border:1px solid black;"></img>
             <video id="video" width="640" height="480" playsinline></video>
