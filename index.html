@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Hand Pose Detection</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/hand-pose-detection"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
-</head>
-<style>
-    .flip-horizontal {
-        transform: scaleX(-1);
-    }
+    <head>
+        <title>Hand Pose Detection</title>
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/hand-pose-detection"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
+    </head>
+    <style>
+.flip-horizontal {
+    transform: scaleX(-1);
+}
 
     body {
         text-align: center; /* Center-align elements */
@@ -25,7 +25,7 @@
         align-items: center; /* Center the contents vertically */
     }
 
-    #video, #canvas, #handCanvas {
+    #video,#phoot, #canvas, #handCanvas {
         display: inline-block;
         vertical-align: top;
     }
@@ -34,170 +34,177 @@
         margin-left: 20px; /* Add some space between the video and the canvas */
         border: 1px solid black; /* Optional: for better visibility */
     }
-      .buttons {
-          margin-top: 20px;
-      }
 
-      .buttons button {
-          margin: 0 10px; /* Space between buttons */
-      }
+    #photo {
+        margin-right: 20px; /* Add some space between the video and the canvas */
+    }
 
-      .train-section {
-          margin-top: 20px;
-          border: 1px solid #ddd; /* Optional: Add a border */
-          padding: 10px;
-          display: inline-block;
-          text-align: left;
-      }
+    .buttons {
+        margin-top: 20px;
+    }
 
-      .train-section h2 {
-          margin-top: 0;
-      }
+    .buttons button {
+        margin: 0 10px; /* Space between buttons */
+    }
 
-      #predictionDisplay {
-          margin-top: 20px;
-          font-size: 24px; /* Larger font size */
-          font-weight: bold;
-          color: #333; /* Optional: Change text color */
-      }
-</style>
-<body>
-    <div class="video-canvas-container">
-    <video id="video" width="640" height="480" playsinline></video>
-    <canvas id="handCanvas" width="320" height="240" style="border:1px solid black;"></canvas>
-    </div>
+    .train-section {
+        margin-top: 20px;
+        border: 1px solid #ddd; /* Optional: Add a border */
+        padding: 10px;
+        display: inline-block;
+        text-align: left;
+    }
 
-    <div class = "buttons">
-        <button id="startButton">Start Video</button>
-        <button id="predictButton">Predict</button>
-    </div>
+    .train-section h2 {
+        margin-top: 0;
+    }
 
-    <div class = "train-section">
-        <input type="text" id="labelInput" placeholder="Enter label">
-        <button id="sendDataButton">Send Data</button>
-    </div>
+    #predictionDisplay {
+        margin-top: 20px;
+        font-size: 24px; /* Larger font size */
+        font-weight: bold;
+        color: #333; /* Optional: Change text color */
+    }
+    </style>
+    <body>
+        <div class="video-canvas-container">
+            <img id = "photo" src="signs.png" width="320" height="480" style="border:1px solid black;"></img>
+            <video id="video" width="640" height="480" playsinline></video>
+            <canvas id="handCanvas" width="320" height="240" style="border:1px solid black;"></canvas>
+        </div>
 
-    <p id="predictionDisplay" style="font-size: 32px; font-weight: bold;"></p>
+        <div class = "buttons">
+            <button id="startButton">Start Video</button>
+            <button id="predictButton">Predict</button>
+        </div>
 
-    <script>
-        const URL_SERVER = "http://127.0.0.1:5000/receive_data";
-        const URL_SERVER_PREDICT = "http://127.0.0.1:5000/predict"
-        async function main() {
-            const video = document.getElementById('video');
-            const startButton = document.getElementById('startButton');
-            const sendDataButton = document.getElementById('sendDataButton');
-            const labelInput = document.getElementById('labelInput');
-            const predictButton = document.getElementById('predictButton');
-            let lastPredictions = null;
+        <div class = "train-section">
+            <input type="text" id="labelInput" placeholder="Enter label">
+            <button id="sendDataButton">Send Data</button>
+        </div>
 
-            document.getElementById('video').classList.add('flip-horizontal');
-            document.getElementById('handCanvas').classList.add('flip-horizontal');
+        <p id="predictionDisplay" style="font-size: 32px; font-weight: bold;"></p>
 
-            // Load the MediaPipe handpose model.
-            const model = await handPoseDetection.createDetector(handPoseDetection.SupportedModels.MediaPipeHands, {
-                runtime: 'mediapipe',
-                solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/hands'
-            });
+        <script>
+            const URL_SERVER = "http://127.0.0.1:5000/receive_data";
+            const URL_SERVER_PREDICT = "http://127.0.0.1:5000/predictadvanced"
+            async function main() {
+                const video = document.getElementById('video');
+                const startButton = document.getElementById('startButton');
+                const sendDataButton = document.getElementById('sendDataButton');
+                const labelInput = document.getElementById('labelInput');
+                const predictButton = document.getElementById('predictButton');
+                let lastPredictions = null;
 
-            // Setup video
-            async function setupCamera() {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = stream;
-                return new Promise((resolve) => {
-                    video.onloadedmetadata = () => {
-                        resolve(video);
-                    };
-                });
-            }
+                document.getElementById('video').classList.add('flip-horizontal');
+                document.getElementById('handCanvas').classList.add('flip-horizontal');
 
+                // Load the MediaPipe handpose model.
+                    const model = await handPoseDetection.createDetector(handPoseDetection.SupportedModels.MediaPipeHands, {
+                        runtime: 'mediapipe',
+                        solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/hands'
+                    });
 
-            predictButton.addEventListener('click', function() {
-                // Prepare your data for prediction (adjust this to match your model's input format)
-                const data = {label: "aa", handData: lastPredictions}; // Replace with the actual data you want to predict };
-                fetch(URL_SERVER_PREDICT, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        //'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: JSON.stringify(data)
-                    //mode: 'cors'
-                    //mode: 'no-cors'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Success:', data);
-                    updatePredictionDisplay(data.prediction);
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                });
-            });
-
-            function autoPredict() {
-                predictButton.click();
-            };
-
-            function updatePredictionDisplay(prediction) {
-                const displayElement = document.getElementById('predictionDisplay');
-                displayElement.textContent = 'Prediction: ' + prediction;  // Adjust based on the actual structure of 'prediction'
-            }
-
-            async function detect() {
-                const predictions = await model.estimateHands(video);
-                if (predictions.length > 0) {
-                    //console.log("predictions", predictions);
-                    lastPredictions = predictions;
-                    //console.log(lastPredictions[0].keypoints);
-                    drawHand(lastPredictions[0].keypoints, 'handCanvas');
+                // Setup video
+                async function setupCamera() {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = stream;
+                    return new Promise((resolve) => {
+                        video.onloadedmetadata = () => {
+                            resolve(video);
+                        };
+                    });
                 }
-                requestAnimationFrame(detect);
-            }
 
-            function sendDataToServer(data, url = URL_SERVER) {
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data),
-                    mode: 'cors'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Success:', data);
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                });
-            }
+                const predictionmap = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'X', 'Y', 'Z']
 
-            const edges = [
-                { start: 0, end: 1 }, 
-                { start: 1, end: 2 }, 
-                { start: 2, end: 3 },
-                { start: 3, end: 4 }, 
+                predictButton.addEventListener('click', function() {
+                    // Prepare your data for prediction (adjust this to match your model's input format)
+                    const data = {label: "aa", handData: lastPredictions}; // Replace with the actual data you want to predict };
+                    fetch(URL_SERVER_PREDICT, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            //'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: JSON.stringify(data)
+                        //mode: 'cors'
+                        //mode: 'no-cors'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Success:', data);
+                        updatePredictionDisplay(predictionmap[data.prediction]);
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+            });
 
-                { start: 0, end: 5 }, 
-                { start: 5, end: 6 },
-                { start: 6, end: 7 }, 
-                { start: 7, end: 8 }, 
+                function autoPredict() {
+                    predictButton.click();
+                };
 
-                { start: 0, end: 9 }, 
-                { start: 9, end: 10 },
-                { start: 10, end: 11 }, 
-                { start: 11, end: 12 }, 
+                function updatePredictionDisplay(prediction) {
+                    const displayElement = document.getElementById('predictionDisplay');
+                    displayElement.textContent = 'Prediction: ' + prediction;  // Adjust based on the actual structure of 'prediction'
+                }
 
-                { start: 0, end: 13 }, 
-                { start: 13, end: 14 },
-                { start: 14, end: 15 }, 
-                { start: 15, end: 16 }, 
+                async function detect() {
+                    const predictions = await model.estimateHands(video);
+                    if (predictions.length > 0) {
+                        //console.log("predictions", predictions);
+                        lastPredictions = predictions;
+                        //console.log(lastPredictions[0].keypoints);
+                        drawHand(lastPredictions[0].keypoints, 'handCanvas');
+                    }
+                    requestAnimationFrame(detect);
+                }
 
-                { start: 0, end: 17 }, 
-                { start: 17, end: 18 },
-                { start: 18, end: 19 }, 
-                { start: 19, end: 20 }, 
-            ];
+                function sendDataToServer(data, url = URL_SERVER) {
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                        mode: 'cors'
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Success:', data);
+                        })
+                        .catch((error) => {
+                            console.error('Error:', error);
+                        });
+                }
+
+                const edges = [
+                    { start: 0, end: 1 }, 
+                    { start: 1, end: 2 }, 
+                    { start: 2, end: 3 },
+                    { start: 3, end: 4 }, 
+
+                    { start: 0, end: 5 }, 
+                    { start: 5, end: 6 },
+                    { start: 6, end: 7 }, 
+                    { start: 7, end: 8 }, 
+
+                    { start: 0, end: 9 }, 
+                    { start: 9, end: 10 },
+                    { start: 10, end: 11 }, 
+                    { start: 11, end: 12 }, 
+
+                    { start: 0, end: 13 }, 
+                    { start: 13, end: 14 },
+                    { start: 14, end: 15 }, 
+                    { start: 15, end: 16 }, 
+
+                    { start: 0, end: 17 }, 
+                    { start: 17, end: 18 },
+                    { start: 18, end: 19 }, 
+                    { start: 19, end: 20 }, 
+                ];
             const scalefactor = 0.5;
 
             function drawHand(points, canvasId) {
@@ -237,21 +244,43 @@
             });
 
             sendDataButton.addEventListener('click', () => {
+                //if (lastPredictions) {
+                 //   const label = labelInput.value.trim();
+                    //const dataToBeSent = { label, handData: lastPredictions };
+                    ///sendDataToServer(dataToBeSent);
+                //} else {
+                    //console.log('No data to send');
+                //}
+                sendDataRepeatedly();
+            });
+
+
+            function sendDataRepeatedly() {
                 if (lastPredictions) {
-                    const label = labelInput.value.trim();
-                    const dataToBeSent = { label, handData: lastPredictions };
-                    sendDataToServer(dataToBeSent);
+                    let count = 0;
+                    const interval = setInterval(() => {
+                        if (count < 200) {
+                            const label = labelInput.value.trim();
+                            const dataToBeSent = { label, handData: lastPredictions };
+                            sendDataToServer(dataToBeSent);
+                            count++;
+                        } else {
+                            clearInterval(interval);
+                        }
+                    }, 100); // 0.2 seconds
                 } else {
                     console.log('No data to send');
                 }
-            });
-        setInterval(autoPredict, 700);
-        }
+                console.log("finished sending data");
+            }
 
-        main();
+            setInterval(autoPredict, 700);
+}
+
+            main();
 
 
-    </script>
-</body>
+        </script>
+    </body>
 </html>
 

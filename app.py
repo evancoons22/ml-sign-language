@@ -5,7 +5,7 @@ from sqlite3 import Error
 
 import torch
 from flask import Flask, request, jsonify
-from hand_pose_model import HandPoseGNN
+from hand_pose_model import HandPoseGNN, EnhancedHandPoseGNN
 from torch_geometric.data import Data
 import numpy as np
 
@@ -105,12 +105,6 @@ def predict():
     hand_data = data.get('handData')
     keypoints = hand_data[0].get('keypoints')
 
-    # print("label: ", keypoints)
-
-    # Flatten hand data
-    # hand_points = [item for sublist in hand_data for item in sublist['keypoints']]
-    # values = [label] + hand_points
-
     #flatten
     values = [coord for point in keypoints for coord in (point['x'], point['y'])]
     # values = values[1:]
@@ -120,14 +114,6 @@ def predict():
     keypoints = (keypoints - keypoints.mean(axis=0)) / keypoints.std(axis=0)
     x = torch.tensor(keypoints, dtype=torch.float)
     input = Data(x=x, edge_index=edge_index)
-
-    # Add label to the data
-    # print("logging data: ", values)
-    # Parse input data
-    # data = request.json
-    # Convert data to suitable format for PyTorch model
-    # For example, if data is a sequence of hand positions:
-    # input_tensor = torch.tensor(values)  # Adjust based on actual data format
 
     # Forward pass
     with torch.no_grad():
@@ -141,7 +127,45 @@ def predict():
     print("response: ", response)
     return jsonify(response)
 
+modeladvanced = EnhancedHandPoseGNN()  # Replace with your actual model and parameters
+modeladvanced.load_state_dict(torch.load('model2.pth'))
+modeladvanced.eval()
+
+@app.route('/predictadvanced', methods=['POST'])
+@cross_origin()
+def predictadvanced():
+    request.get_json(force=True)
+    data = request.json
+    #label = data.get('label')
+    hand_data = data.get('handData')
+    keypoints = hand_data[0].get('keypoints')
+
+    #flatten
+    values = [coord for point in keypoints for coord in (point['x'], point['y'])]
+    # values = values[1:]
+
+    keypoints = np.array(values).reshape(-1, 2) # Reshape to (21, 2)
+    # Normalize keypoints (optional, based on your data range)
+    keypoints = (keypoints - keypoints.mean(axis=0)) / keypoints.std(axis=0)
+    x = torch.tensor(keypoints, dtype=torch.float)
+    input = Data(x=x, edge_index=edge_index)
+
+    # Forward pass
+    with torch.no_grad():
+        output = modeladvanced(input)
+        _, predicted = torch.max(output.data, 1)
+
+    # Convert the prediction to a response
+    response = {
+        'prediction': predicted.item()
+    }
+    print("response: ", response)
+    return jsonify(response)
+
+
+
 if __name__ == '__main__':
     #create_table()
     app.run(debug=True)
+
 
