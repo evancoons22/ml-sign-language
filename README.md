@@ -1,5 +1,5 @@
 # ml-sign-language
-Live inference of sign language for math 156 final project UCLA. 
+Live inference of sign language letters and digits for math 156 final project UCLA. 
 
 ### Example
 
