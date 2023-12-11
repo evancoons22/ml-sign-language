@@ -1,5 +1,6 @@
 # ml-sign-language
-Live inference of sign language letters and digits for math 156 final project UCLA. 
+Live inference of sign language letters and digits for math 156 final project UCLA.  
+Built with pytorch and [Google MediaPipe](https://developers.google.com/mediapipe/solutions/vision/hand_landmarker).
 
 ### Example
 
