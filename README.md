@@ -12,7 +12,7 @@ Live inference of sign language letters and digits for math 156 final project UC
    - `$pip install flask-cors`
    - `$pip install torch-geometric`
    - install torch, numpy
-2. Run flask backend with `$python3 app.py`
+2. Run flask with `$python app.py`
 3. Open index.html in browser.
 4. Turn off CORS in the browser (in Safari: Developer > Disable Cross-Origin Restrictions) 
 
