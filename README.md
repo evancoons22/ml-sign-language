@@ -3,7 +3,7 @@ Live inference of sign language letters and digits for math 156 final project UC
 
 ### Example
 
-![](https://github.com/evancoons22/ml-sign-language/blob/main/output.gif)
+![](https://github.com/evancoons22/ml-sign-language/blob/main/output2.gif)
 
 ### Instructions
 1. Make sure these dependencies are installed:
